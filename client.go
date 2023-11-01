@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 
-	utils "github.com/sashabaranov/go-openai/internal"
+	utils "github.com/robat-ai/go-openai/internal"
 )
 
 // Client is OpenAI GPT-3 API client.
@@ -84,6 +85,7 @@ func withContentType(contentType string) requestOption {
 }
 
 func (c *Client) newRequest(ctx context.Context, method, url string, setters ...requestOption) (*http.Request, error) {
+	log.Println("newRequest:", method, url)
 	// Default Options
 	args := &requestOptions{
 		body:   nil,
