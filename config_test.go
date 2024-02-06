@@ -3,6 +3,7 @@ package openai_test
 import (
 	"testing"
 
+	"github.com/robat-ai/go-openai"
 	. "github.com/robat-ai/go-openai"
 )
 
@@ -49,7 +50,7 @@ func TestGetAzureDeploymentByModel(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Model, func(t *testing.T) {
-			conf := DefaultAzureConfig("", "https://test.openai.azure.com/")
+			conf := openai.DefaultAzureConfig("", "https://test.openai.azure.com/")
 			if c.AzureModelMapperFunc != nil {
 				conf.AzureModelMapperFunc = c.AzureModelMapperFunc
 			}

@@ -16,11 +16,24 @@ import (
 	"github.com/robat-ai/go-openai/internal/test/checks"
 )
 
+func TestFileBytesUpload(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/files", handleCreateFile)
+	req := openai.FileBytesRequest{
+		Name:    "foo",
+		Bytes:   []byte("foo"),
+		Purpose: openai.PurposeFineTune,
+	}
+	_, err := client.CreateFileBytes(context.Background(), req)
+	checks.NoError(t, err, "CreateFile error")
+}
+
 func TestFileUpload(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/files", handleCreateFile)
-	req := FileRequest{
+	req := openai.FileRequest{
 		FileName: "test.go",
 		FilePath: "client.go",
 		Purpose:  "fine-tune",
@@ -57,7 +70,7 @@ func handleCreateFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	var fileReq = File{
+	fileReq := openai.File{
 		Bytes:     int(header.Size),
 		ID:        strconv.Itoa(int(time.Now().Unix())),
 		FileName:  header.Filename,
@@ -82,7 +95,7 @@ func TestListFile(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/files", func(w http.ResponseWriter, r *http.Request) {
-		resBytes, _ := json.Marshal(FilesList{})
+		resBytes, _ := json.Marshal(openai.FilesList{})
 		fmt.Fprintln(w, string(resBytes))
 	})
 	_, err := client.ListFiles(context.Background())
@@ -93,7 +106,7 @@ func TestGetFile(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/files/deadbeef", func(w http.ResponseWriter, r *http.Request) {
-		resBytes, _ := json.Marshal(File{})
+		resBytes, _ := json.Marshal(openai.File{})
 		fmt.Fprintln(w, string(resBytes))
 	})
 	_, err := client.GetFile(context.Background(), "deadbeef")
@@ -148,7 +161,7 @@ func TestGetFileContentReturnError(t *testing.T) {
 		t.Fatal("Did not return error")
 	}
 
-	apiErr := &APIError{}
+	apiErr := &openai.APIError{}
 	if !errors.As(err, &apiErr) {
 		t.Fatalf("Did not return APIError: %+v\n", apiErr)
 	}

@@ -84,6 +84,12 @@ func withContentType(contentType string) requestOption {
 	}
 }
 
+func withBetaAssistantV1() requestOption {
+	return func(args *requestOptions) {
+		args.header.Set("OpenAI-Beta", "assistants=v1")
+	}
+}
+
 func (c *Client) newRequest(ctx context.Context, method, url string, setters ...requestOption) (*http.Request, error) {
 	log.Println("newRequest:", method, url)
 	// Default Options
@@ -189,10 +195,14 @@ func decodeResponse(body io.Reader, v any) error {
 		return nil
 	}
 
-	if result, ok := v.(*string); ok {
-		return decodeString(body, result)
+	switch o := v.(type) {
+	case *string:
+		return decodeString(body, o)
+	case *audioTextResponse:
+		return decodeString(body, &o.Text)
+	default:
+		return json.NewDecoder(body).Decode(v)
 	}
-	return json.NewDecoder(body).Decode(v)
 }
 
 func decodeString(body io.Reader, output *string) error {
